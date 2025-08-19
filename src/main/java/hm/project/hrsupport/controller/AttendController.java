@@ -10,11 +10,15 @@ import org.springframework.web.bind.annotation.RestController;
 
 import hm.project.hrsupport.dto.AttendDTO;
 import hm.project.hrsupport.service.AttendService;
+
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 // import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-
+// import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.PutMapping;
 
 
 @RestController
@@ -28,11 +32,29 @@ public class AttendController {
         List<AttendDTO> attendance = attendService.getAllAttendance();
         return new ResponseEntity<>(attendance, HttpStatus.OK);
     }
-    
+
+    @GetMapping("/{id}")
+    public ResponseEntity<AttendDTO> getAttendanceById(@PathVariable Long id) {
+        AttendDTO attend = attendService.getAttendanceById(id);
+        return ResponseEntity.ok(attend);
+    }
+
     @PostMapping
     public ResponseEntity<AttendDTO> addAttendance(@RequestBody AttendDTO attendDTO) {
         AttendDTO attendance = attendService.addAttendance(attendDTO);
         return new ResponseEntity<>(attendance, HttpStatus.CREATED);
     }
-    
+
+    @DeleteMapping
+    public ResponseEntity<Void> deleteAttendance(@PathVariable Long id) {
+        attendService.deleteAttendance(id);
+        return ResponseEntity.noContent().build();
+    }
+ 
+    @PutMapping("path/{id}")
+    public ResponseEntity<AttendDTO> editAttendance(@PathVariable String id, @RequestBody AttendDTO attendDTO) {
+        AttendDTO attend = attendService.editAttendance(id, attendDTO);
+        return new ResponseEntity<>(attend, HttpStatus.OK);
+    }
+   
 }

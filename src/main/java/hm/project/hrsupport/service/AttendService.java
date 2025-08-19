@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import hm.project.hrsupport.dto.AttendDTO;
 import hm.project.hrsupport.entity.Attendance;
 import hm.project.hrsupport.entity.Employee;
+import hm.project.hrsupport.exception.ApiRequestException;
 // import hm.project.hrsupport.enums.AttendanceStatusEnum;
 // import hm.project.hrsupport.exception.ApiRequestException;
 import hm.project.hrsupport.repository.AttendRepository;
@@ -55,7 +56,6 @@ public class AttendService {
     // // set manually the checkIn and Out time for absent and on leave employee
     // public AttendDTO addAttendance(AttendDTO attendDTO) {
     //     Attendance attend = modelMapper.map(attendDTO, Attendance.class);
-
     //     Employee emp = empRepository.findById(attendDTO.getEmployeeId())
     //             .orElseThrow(()-> new IllegalStateException("Employee ID not found"));
     //     attend.setEmployee(emp);
@@ -68,6 +68,27 @@ public class AttendService {
     //     }
     //     return resultDTO;
     // }
+
+
+    public AttendDTO getAttendanceById(Long id) {
+        Attendance attend = attendRepository.findById(id)
+                    .orElseThrow(()-> new ApiRequestException("attendance not found with id "+id));
+        return modelMapper.map(attend, AttendDTO.class);
+    }
+
+
+    public void deleteAttendance(Long id) {
+        attendRepository.deleteById(id);
+    }
+
+
+    // public AttendDTO editAttendance(String id, AttendDTO attendDTO) {
+    //     Attendance attendance = attendRepository.findById(id)
+    //             .orElseThrow(()-> new ApiRequestException("Attendance not found"))
+    //     modelMapper.map(attendDTO, attendance);
+    //     Employee empAttend = 
+    // }
+
 }
 // {
 //     "date": "2025-08-19",
