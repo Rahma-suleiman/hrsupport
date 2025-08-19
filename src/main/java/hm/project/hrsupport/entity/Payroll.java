@@ -14,28 +14,32 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
-import lombok.AllArgsConstructor;
-import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 
 @Getter
 @Setter
-@EqualsAndHashCode
-@AllArgsConstructor
 @Entity
 @Table(name = "payroll")
 public class Payroll {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    
-    @Column(name = "month", columnDefinition = "VARCHAR(7)") // <- here
-    private YearMonth month; // stores year + month (e.g., 2024-08)
-    // private YearMonth month;
+
+    // @Column(name = "month", columnDefinition = "VARCHAR(7)")
+    // private YearMonth month; // stores year + month (e.g., 2024-08)
+
+    private Integer year; // e.g., 2025
+    private Integer month; // e.g., 8
+
     private Integer salary;
-    private Integer bonus;
-    private Integer deduction;
+    // private Integer bonus;
+    // private Integer deduction;
+    // @Column(nullable = false)
+    private Integer bonus = 0;
+
+    // @Column(nullable = false)
+    private Integer deduction = 0;
     private Integer netSalary;
 
     @Enumerated(EnumType.STRING)

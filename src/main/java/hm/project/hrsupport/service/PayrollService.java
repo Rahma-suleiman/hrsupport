@@ -15,7 +15,7 @@ import hm.project.hrsupport.repository.PayrollRepository;
 import lombok.AllArgsConstructor;
 
 @Service
-@AllArgsConstructor //use this to automaticall inject constructor or use @Autowired
+@AllArgsConstructor // use this to automaticall inject constructor or use @Autowired
 public class PayrollService {
 
     private final PayrollRepository payrollRepository;
@@ -25,24 +25,42 @@ public class PayrollService {
     public List<PayrollDTO> getAllPayroll() {
         List<Payroll> payroll = payrollRepository.findAll();
         return payroll.stream()
-            .map(pay-> modelMapper.map(payroll, PayrollDTO.class))
-            .collect(Collectors.toList());
+                .map(pay -> modelMapper.map(payroll, PayrollDTO.class))
+                .collect(Collectors.toList());
     }
 
     public PayrollDTO addPayroll(PayrollDTO payrollDTO) {
+
+        // Fetch the employee first
+        Employee employee = empRepository.findById(payrollDTO.getEmployeeId())
+                .orElseThrow(() -> new ApiRequestException(
+                        "Cannot get payroll for employee id " + payrollDTO.getEmployeeId()));
+
+        // Map DTO to entity
         Payroll payroll = modelMapper.map(payrollDTO, Payroll.class);
 
-        Employee empId = empRepository.findById(payrollDTO.getEmployeeId())
-                    .orElseThrow(()-> new ApiRequestException("Oops cannot get payroll with id" + payrollDTO.getEmployeeId()));
-        payroll.setEmployee(empId);
+        // Set the employee
+        payroll.setEmployee(employee);
         // Net Salary=Salary+Bonus−Deductions
-        int netSalary = payrollDTO.getSalary()+payrollDTO.getBonus()-payrollDTO.getDeduction();
+        // Use employee's salary to calculate netSalary
+        int netSalary = employee.getSalary()
+                + (payrollDTO.getBonus() != null ? payrollDTO.getBonus() : 0)
+                - (payrollDTO.getDeduction() != null ? payrollDTO.getDeduction() : 0);
         // set the calculated net salar
         payroll.setNetSalary(netSalary);
 
-        Payroll savingPayroll = payrollRepository.save(payroll);
-        
-        return modelMapper.map(savingPayroll, PayrollDTO.class);
+        payroll.setSalary(employee.getSalary());
+
+        Payroll savedPayroll = payrollRepository.save(payroll);
+
+        PayrollDTO savedPayrollDTO = modelMapper.map(savedPayroll, PayrollDTO.class);
+
+        // Set salary in the DTO so it is included in the response.
+        // This field is read-only in the DTO and comes from the Employee entity, not
+        // from user input.
+        savedPayrollDTO.setSalary(savedPayroll.getSalary());
+
+        return savedPayrollDTO;
     }
 
 }

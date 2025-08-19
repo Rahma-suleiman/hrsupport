@@ -1,5 +1,8 @@
 package hm.project.hrsupport;
 
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
+
 import org.modelmapper.ModelMapper;
 import org.springframework.boot.autoconfigure.jackson.Jackson2ObjectMapperBuilderCustomizer;
 import org.springframework.context.annotation.Bean;
@@ -8,6 +11,7 @@ import org.springframework.context.annotation.Configuration;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.fasterxml.jackson.datatype.jsr310.ser.LocalTimeSerializer;
 
 @Configuration
 public class AppConfig {
@@ -34,22 +38,22 @@ public class AppConfig {
     }
 
     // add its dependenc in pom.xml
-    // @Bean
-    // public ObjectMapper objectMapper() {
-    // ObjectMapper mapper = new ObjectMapper();
-    // mapper.registerModule(new JavaTimeModule()); // support LocalDate, LocalTime,
-    // LocalDateTime
-    // return mapper;
-    // }
-
     @Bean
     public ObjectMapper objectMapper() {
         ObjectMapper mapper = new ObjectMapper();
-        mapper.registerModule(new JavaTimeModule()); // handle LocalDate, LocalTime
-        mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS); // send as string
+        mapper.registerModule(new JavaTimeModule());
+        mapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
+
+        // Force LocalTime formatting
+        JavaTimeModule module = new JavaTimeModule();
+        module.addSerializer(LocalTime.class,
+                new LocalTimeSerializer(DateTimeFormatter.ofPattern("HH:mm")));
+        mapper.registerModule(module);
+
         return mapper;
     }
 
+ 
 }
 // Why this works
 // Without skipNullEnabled(true)

@@ -5,11 +5,15 @@ import java.time.LocalTime;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
 import hm.project.hrsupport.enums.AttendanceStatusEnum;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
-@Data
+// @Data
+@Getter
+@Setter
 // public class AttendDTO {
 
 // @JsonProperty(access = JsonProperty.Access.READ_ONLY)
@@ -30,7 +34,7 @@ import lombok.Data;
 // @JsonProperty("employee_id") // <-- match incoming JSON field
 // private Long employeeId;
 // }
-
+@JsonPropertyOrder({ "id", "date", "checkInTime", "checkOutTime", "status", "employeeId"})
 public class AttendDTO {
 
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
@@ -44,7 +48,7 @@ public class AttendDTO {
 
     private AttendanceStatusEnum status;
 
-    @JsonProperty("employee_id")
+    // @JsonProperty("employeeId")
     private Long employeeId;
 
     // Customize JSON output for checkInTime

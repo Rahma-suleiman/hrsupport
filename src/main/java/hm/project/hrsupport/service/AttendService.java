@@ -70,9 +70,9 @@ public class AttendService {
     // }
 }
 // {
-//     "date":"2025-08-15",
-//     "checkInTime":"8:30",
-//     "checkOutTime":"17:00",
-//     "status":"PRESENT",
-//     "employee_id":"1"
+//     "date": "2025-08-19",
+//     "checkInTime": "08:30",
+//     "checkOutTime": "17:00",
+//     "status": "PRESENT",
+//     "employeeId": 1
 // }

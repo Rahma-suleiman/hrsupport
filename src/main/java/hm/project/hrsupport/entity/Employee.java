@@ -44,6 +44,6 @@ public class Employee extends AuditModel<String> {
 
     // foreign keys
     @ManyToOne
-    @JoinColumn(name = "department_id")
+    @JoinColumn(name = "departmentId")
     private Department department;
 }

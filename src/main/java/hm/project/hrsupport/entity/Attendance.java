@@ -32,7 +32,7 @@ public class Attendance extends AuditModel<String> {
     private AttendanceStatusEnum status; // only enum values are allowed
 
     @ManyToOne
-    @JoinColumn(name = "employee_id") // <-- snake_case to match DB column
+    @JoinColumn(name = "employeeId") // <-- snake_case to match DB column
     private Employee employee;
 
 }
