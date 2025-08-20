@@ -52,7 +52,7 @@ public class AttendController {
     }
  
     @PutMapping("path/{id}")
-    public ResponseEntity<AttendDTO> editAttendance(@PathVariable String id, @RequestBody AttendDTO attendDTO) {
+    public ResponseEntity<AttendDTO> editAttendance(@PathVariable Long id, @RequestBody AttendDTO attendDTO) {
         AttendDTO attend = attendService.editAttendance(id, attendDTO);
         return new ResponseEntity<>(attend, HttpStatus.OK);
     }

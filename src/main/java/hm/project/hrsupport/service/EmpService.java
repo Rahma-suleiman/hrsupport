@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import hm.project.hrsupport.dto.EmpDTO;
 import hm.project.hrsupport.entity.Department;
 import hm.project.hrsupport.entity.Employee;
+import hm.project.hrsupport.exception.ApiRequestException;
 import hm.project.hrsupport.repository.DeptRepository;
 import hm.project.hrsupport.repository.EmpRepository;
 
@@ -38,20 +39,64 @@ public class EmpService {
         return modelMapper.map(empId, EmpDTO.class);
     }
 
+    // public EmpDTO createEmployee(EmpDTO empDTO) {
+    // // Convert DTO to Entity 2 b saved in DB
+    // Employee employee = modelMapper.map(empDTO, Employee.class);
+
+    // // Set Department
+    // Department department = deptRepository.findById(empDTO.getDepartmentId())
+    // .orElseThrow(() -> new RuntimeException("Department not found"));
+
+    // employee.setDepartment(department);
+
+    // // Save and return
+    // Employee saveEmp = empRepository.save(employee);
+
+    // return modelMapper.map(saveEmp, EmpDTO.class);
+    // }
     public EmpDTO createEmployee(EmpDTO empDTO) {
         // Convert DTO to Entity 2 b saved in DB
         Employee employee = modelMapper.map(empDTO, Employee.class);
 
-        // Set Department
+        // set Manager(optional)
+        if (empDTO.getManagerId() != null) {
+            Employee manager = empRepository.findById(empDTO.getManagerId())
+                    .orElseThrow(() -> new ApiRequestException("Manager not found with id" + empDTO.getManagerId()));
+            employee.setManager(manager);
+        }
+        // Required departmentId
+        if (empDTO.getDepartmentId() == null) {
+            throw new ApiRequestException("Department is required for every employee");
+        }
+        // Set Department (mandatory)
         Department department = deptRepository.findById(empDTO.getDepartmentId())
-                .orElseThrow(() -> new RuntimeException("Department not found"));
-
+                .orElseThrow(() -> new ApiRequestException("Department not found"));
         employee.setDepartment(department);
 
-        // Save and return
-        Employee saveEmp = empRepository.save(employee);
 
-        return modelMapper.map(saveEmp, EmpDTO.class);
+        
+
+        // Save and return
+        Employee savedEmp = empRepository.save(employee);
+
+        // Map Back to DTO and assign it 2 a variable(2 send emploee saved response to
+        // user) and set extra field manually
+        EmpDTO empResponse = modelMapper.map(savedEmp, EmpDTO.class);
+        // set field by checking if(Ternary Operator) dea are filled if not will
+        // assigned manager as null(i.e for boss/CEO is managerId = null bcz dey dont hv
+        // a manager)
+        // savedEmp.getManager() → returns an Manager object (the boss/manager).
+        // .getId() → returns the Employee ID field of that manager(a Long).
+        empResponse.setManagerId(savedEmp.getManager() != null ? savedEmp.getManager().getId() : null);
+        // empResponse.setDepartmentId(savedEmp.getDepartment() != null ?
+        // savedEmp.getDepartment() : null);
+        empResponse.setSubordinateIds(savedEmp.getSubordinates() != null
+                ? savedEmp.getSubordinates().stream()
+                        .map(sub -> modelMapper.map(sub, EmpDTO.class).getId())
+                        .collect(Collectors.toList())
+                : null);
+
+        return empResponse;
     }
 
     public void deleteEmployeeById(Long id) {
@@ -59,10 +104,12 @@ public class EmpService {
     }
 
     public EmpDTO editEmployee(Long id, EmpDTO empDTO) {
-        // emp is fetched from the database — so at this point, it’s a fully populated
-        // Employee entity with existing values.
+        // Fetch the existing employee from the database
         Employee existingEmp = empRepository.findById(id)
-                .orElseThrow(() -> new IllegalStateException("Employee not found with ID:" + id));
+                .orElseThrow(() -> new ApiRequestException("Employee not found with ID:" + id));
+        // Ensure DTO ID matches the one we found in the DB
+        // (this prevents someone from changing the department ID in the request)
+        empDTO.setId(existingEmp.getId());
         // Map only non-null fields from DTO to entity to avoid overwriting with null
 
         // modelMapper.map(empDTO, emp) — this takes every field in empDTO and assigns
@@ -72,67 +119,53 @@ public class EmpService {
         // null. BUT WITH THIS
         // you can keep the old DB values when a field is missing in the DTO, you
         // need to configure ModelMapper to skip nulls during mapping: with this line of
-        // code (modelMapper.getConfiguration().setSkipNullEnabled(true);)
-        // setSkipNullEnabled(true) → Tells ModelMapper not to overwrite existing values with null.
+        // code => modelMapper.getConfiguration().setSkipNullEnabled(true); in the
+        // AppConfig class
+        // setSkipNullEnabled(true) → Tells ModelMapper not to overwrite existing values
+        // with null.
         modelMapper.map(empDTO, existingEmp);
+
+        // Update manager if provided
+        if (empDTO.getManagerId() != null) {
+            Employee manager = empRepository.findById(empDTO.getManagerId())
+                    .orElseThrow(() -> new ApiRequestException("manager not found with id" + empDTO.getManagerId()));
+            existingEmp.setManager(manager);
+        }
         // If departmentId is provided, update department
         if (empDTO.getDepartmentId() != null) {
             Department dept = deptRepository.findById(empDTO.getDepartmentId())
-                    .orElseThrow(() -> new IllegalStateException("Invalid department id" + empDTO.getDepartmentId()));
+                    .orElseThrow(() -> new ApiRequestException("Invalid department id" + empDTO.getDepartmentId()));
             existingEmp.setDepartment(dept);
         }
-        Employee updateEmp = empRepository.save(existingEmp);
-        return modelMapper.map(updateEmp, EmpDTO.class);
+        Employee updatedEmp = empRepository.save(existingEmp);
+        // map back to DTO
+        EmpDTO empDtoResponse = modelMapper.map(updatedEmp, EmpDTO.class);
+        // Set manager ID manually for response (null if no manager)
+        empDtoResponse.setManagerId(updatedEmp.getManager() != null ? updatedEmp.getManager().getId() : null);
+
+        // Set subordinate IDs manually for response
+        empDtoResponse.setSubordinateIds(updatedEmp.getSubordinates() != null
+                ? updatedEmp.getSubordinates().stream()
+                        .map(sub -> modelMapper.map(sub, EmpDTO.class).getId())
+                        .collect(Collectors.toList())
+                : null);
+        return empDtoResponse;
     }
 
 }
-// MAKE SURE B4 POSTING EMPLOEE THEIR MUST B EXISTING DEPARTMENT 
+// MAKE SURE B4 POSTING EMPLOEE THEIR MUST B EXISTING DEPARTMENT
 // POST
 // {
-//   "firstName": "Amhar",
+//   "firstName": "Rahma",
 //   "lastName": "Suleiman",
-//   "email": "amhar@example.com",
-//   "phone": "0765359987",
+//   "email": "rahma.suleiman@example.com",
+//   "phone": "+255712345678",
 //   "address": "Mombasa",
 //   "gender": "Female",
-//   "dob": "2000-08-18",
-//   "hireDate": "2020-08-18",
-//   "position": "Software Developer",
-//   "salary": 1238900,
-//   "status": "Active",
+//   "dob": "1998-04-15",
+//   "hireDate": "2023-06-01",
+//   "position": "Software Engineer",
+//   "salary": 1200000,
+//   "status": "ACTIVE",
 //   "departmentId": 2
-// }
-//  {
-//   "firstName":"Shuab",
-//   "lastName": "Moha",
-//   "email": "shuab@example.com",
-//   "phone": "076792873",
-//   "address": "Malindi",
-//   "gender": "Male",
-//   "dob": "2001-05-05",
-//   "hireDate": "2023-02-14",
-//   "position": "Software Developer",
-//   "salary": 1970000,
-//   "status": "Active",
-//   "departmentId": 1
-// }
-// PUT
-// {
-//   "firstName": "Rahma",
-//   "lastName": "Sule",
-//   "email": "rahma@gmail.com",
-//   "phone": "098765456789",
-//   "address": "Kilifi",
-//   "gender": "Female",
-//   "dob": "2000-01-11",
-//   "hireDate": "2009-08-14",
-//   "position": "Programming",
-//   "salary": 3200000,
-//   "status": "On Leave",
-//   "departmentId": 1
-// }
-// OR WHEN UPDATING FEW FIELDS
-// {
-//   "firstName": "Shuayb",
-//   "lastName": "Mohammed"
 // }

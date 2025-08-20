@@ -11,8 +11,6 @@ import hm.project.hrsupport.dto.AttendDTO;
 import hm.project.hrsupport.entity.Attendance;
 import hm.project.hrsupport.entity.Employee;
 import hm.project.hrsupport.exception.ApiRequestException;
-// import hm.project.hrsupport.enums.AttendanceStatusEnum;
-// import hm.project.hrsupport.exception.ApiRequestException;
 import hm.project.hrsupport.repository.AttendRepository;
 import hm.project.hrsupport.repository.EmpRepository;
 
@@ -35,7 +33,7 @@ public class AttendService {
     // public List<AttendDTO> getAllAttendance() {
     //     throw new ApiRequestException("Oopscannot get all attendance with custom exception");
     //     // throw new IllegalStateException("Oopscannot get all attendance");
-    // }
+    // } 
     public List<AttendDTO> getAllAttendance() {
         List<Attendance> attendance = attendRepository.findAll();
         return attendance.stream()
@@ -48,7 +46,7 @@ public class AttendService {
         Attendance attend = modelMapper.map(attendDTO, Attendance.class);
 
         Employee emp = empRepository.findById(attendDTO.getEmployeeId())
-                .orElseThrow(()-> new IllegalStateException("Employee ID not found"));
+                .orElseThrow(()-> new ApiRequestException("Employee ID not found"));
         attend.setEmployee(emp);
         Attendance saveAttendance = attendRepository.save(attend);
         return modelMapper.map(saveAttendance, AttendDTO.class);
@@ -82,12 +80,17 @@ public class AttendService {
     }
 
 
-    // public AttendDTO editAttendance(String id, AttendDTO attendDTO) {
-    //     Attendance attendance = attendRepository.findById(id)
-    //             .orElseThrow(()-> new ApiRequestException("Attendance not found"))
-    //     modelMapper.map(attendDTO, attendance);
-    //     Employee empAttend = 
-    // }
+    public AttendDTO editAttendance(Long id, AttendDTO attendDTO) {
+        Attendance attendance = attendRepository.findById(id)
+                .orElseThrow(()-> new ApiRequestException("Attendance not found"));
+        attendDTO.setId(attendance.getId());
+        modelMapper.map(attendDTO, attendance);
+        Employee empAttend = empRepository.findById(attendDTO.getEmployeeId())
+                .orElseThrow(()-> new ApiRequestException("Attendance not found"));
+        attendance.setEmployee(empAttend);
+        Attendance savedAttendance = attendRepository.save(attendance);
+        return modelMapper.map(savedAttendance, AttendDTO.class);
+    }
 
 }
 // {

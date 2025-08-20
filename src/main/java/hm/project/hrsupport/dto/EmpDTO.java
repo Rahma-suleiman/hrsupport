@@ -1,6 +1,7 @@
 package hm.project.hrsupport.dto;
 
 import java.time.LocalDate;
+import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -24,8 +25,13 @@ public class EmpDTO {
     private Integer salary;
     private String status; // Active, On Leave, Resigned
 
-    // private EmpDTO manager;
+    // FK
+    private Long managerId; // Reference manager by ID only
+
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY) // 👈 Only visible in response
+    private List<Long> subordinateIds; // Optional (only if you want manager -> list of employees)
 
     private Long departmentId;
+
 
 }

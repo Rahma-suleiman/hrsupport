@@ -22,13 +22,11 @@ public class AppConfig {
     @Bean
     public ModelMapper modelMapper() {
         ModelMapper mapper = new ModelMapper();
+        // prevents overwriting existing DB fields with null.(wen updating entit and some fields r missing or null)
         mapper.getConfiguration().setSkipNullEnabled(true); // <-- This is the fix
         return mapper;
     }
 
-    // The fix is to tell ModelMapper:
-    // “If the source (DTO) field is null, skip mapping that field — keep whatever
-    // value is already in the destination (entity).”
     @Bean
     public Jackson2ObjectMapperBuilderCustomizer jsonCustomizer() {
         return builder -> {
@@ -55,20 +53,4 @@ public class AppConfig {
 
  
 }
-// Why this works
-// Without skipNullEnabled(true)
 
-// DTO: { name: "Alice", email: null }
-
-// Entity before mapping: { name: "Old Name", email: "old@example.com" }
-
-// After mapping: { name: "Alice", email: null } ❌ (email is erased)
-
-// With skipNullEnabled(true)
-
-// DTO: { name: "Alice", email: null }
-
-// Entity before mapping: { name: "Old Name", email: "old@example.com" }
-
-// After mapping: { name: "Alice", email: "old@example.com" } ✅ (email is
-// preserved)

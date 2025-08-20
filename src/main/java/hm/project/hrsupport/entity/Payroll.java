@@ -1,10 +1,10 @@
 package hm.project.hrsupport.entity;
 
 // import java.time.LocalDate;
-import java.time.YearMonth;
+// import java.time.YearMonth;
 
 import hm.project.hrsupport.enums.PaymentStatusEnum;
-import jakarta.persistence.Column;
+// import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -26,15 +26,11 @@ public class Payroll {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // @Column(name = "month", columnDefinition = "VARCHAR(7)")
-    // private YearMonth month; // stores year + month (e.g., 2024-08)
-
-    private Integer year; // e.g., 2025
-    private Integer month; // e.g., 8
+    private Integer year;
+    private Integer month; 
 
     private Integer salary;
-    // private Integer bonus;
-    // private Integer deduction;
+
     // @Column(nullable = false)
     private Integer bonus = 0;
 

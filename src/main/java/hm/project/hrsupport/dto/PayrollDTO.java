@@ -14,8 +14,8 @@ public class PayrollDTO {
 
   // @JsonFormat(pattern = "yyyy-MM")
   // private YearMonth month;
-  private Integer year; // e.g., 2025
-  private Integer month; // e.g., 8
+  private Integer year;
+  private Integer month; 
 
   @JsonProperty(access = JsonProperty.Access.READ_ONLY)
   private Integer salary;
@@ -31,6 +31,6 @@ public class PayrollDTO {
 
   private PaymentStatusEnum paymentStatus;
 
-  // FK for employee
+  // FK 
   private Long employeeId;
 }

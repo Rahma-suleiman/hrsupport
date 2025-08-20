@@ -1,13 +1,20 @@
 package hm.project.hrsupport.entity;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
+import hm.project.hrsupport.enums.EmployeeStatusEnum;
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 // import lombok.Data;
 // import lombok.EqualsAndHashCode;
@@ -34,15 +41,20 @@ public class Employee extends AuditModel<String> {
     private LocalDate hireDate;
     private String position; // manager, CEO, software Developer
     private Integer salary;
-    private String status; // Active, On Leave, Resigned
 
-    // // Many employees can have the same manager
-    // @ManyToOne
-    // @JoinColumn(name="manager_id") //FK column
-    // private Employee manager; //self referencing (each emp can hv anada emp as
-    // their manager)
+    @Enumerated(EnumType.STRING)
+    private EmployeeStatusEnum status;
 
-    // foreign keys
+    // Self-reference: Many employees can report to one manager
+    @ManyToOne
+    @JoinColumn(name="managerId") //FK column
+    private Employee manager; 
+
+    // Reverse side: One manager has many subordinates
+    @OneToMany(mappedBy = "manager", cascade = CascadeType.ALL)
+    private List<Employee> subordinates = new ArrayList<>();
+    // private List<Employee> subordinates;
+    // FK
     @ManyToOne
     @JoinColumn(name = "departmentId")
     private Department department;

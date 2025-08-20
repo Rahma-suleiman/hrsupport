@@ -36,8 +36,10 @@ public class EmpController {
     }
     @GetMapping("/{id}")
     public ResponseEntity<EmpDTO> getEmployeeById(@PathVariable Long id) {
-        EmpDTO empId= empService.getEmployeeById(id);
-        return ResponseEntity.ok(empId);
+        // EmpDTO empId= empService.getEmployeeById(id);
+        // return ResponseEntity.ok(empId);
+        // OR
+        return ResponseEntity.ok(empService.getEmployeeById(id));
     }
     @PostMapping
     public ResponseEntity<EmpDTO> addEmployee(@RequestBody EmpDTO empDTO) {
@@ -58,17 +60,3 @@ public class EmpController {
     
 }
 
-// {
-//   "email": "amhar123@gmail.com",
-//   "phone": 0754235789,
-//   "address": "darajani",
-//   "gender": "female",
-//   "dateOfBirth": "2018-08-12",
-//   "hireDate": "2025-08-12",
-//   "position": "HR Manager",
-//   "salary": 40000,
-//   "status": "manager",
-//   "departmentId": 2,
-//   "fname": "Rahma",
-//   "lname": "Sulesh"
-// }
