@@ -52,7 +52,7 @@ public class Employee extends AuditModel<String> {
 
     // Reverse side: One manager has many subordinates
     @OneToMany(mappedBy = "manager", cascade = CascadeType.ALL)
-    private List<Employee> subordinates = new ArrayList<>();
+    private List<Employee> subordinates = new ArrayList<>();  //“Add the newly created employee to the manager’s list of subordinates.”
     // private List<Employee> subordinates;
     // FK
     @ManyToOne

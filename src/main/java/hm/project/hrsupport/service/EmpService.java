@@ -58,11 +58,16 @@ public class EmpService {
         // Convert DTO to Entity 2 b saved in DB
         Employee employee = modelMapper.map(empDTO, Employee.class);
 
+        Employee manager = null;
         // set Manager(optional)
         if (empDTO.getManagerId() != null) {
-            Employee manager = empRepository.findById(empDTO.getManagerId())
+             manager = empRepository.findById(empDTO.getManagerId())
                     .orElseThrow(() -> new ApiRequestException("Manager not found with id" + empDTO.getManagerId()));
             employee.setManager(manager);
+
+            // Also update manager's subordinate list
+            manager.getSubordinates().add(employee);
+            empRepository.save(manager); // update manager so relationship is persisted
         }
         // Required departmentId
         if (empDTO.getDepartmentId() == null) {
@@ -72,30 +77,26 @@ public class EmpService {
         Department department = deptRepository.findById(empDTO.getDepartmentId())
                 .orElseThrow(() -> new ApiRequestException("Department not found"));
         employee.setDepartment(department);
-
-
-        
-
         // Save and return
-        Employee savedEmp = empRepository.save(employee);
-
+     Employee savedEmployee = empRepository.save(employee);
         // Map Back to DTO and assign it 2 a variable(2 send emploee saved response to
         // user) and set extra field manually
-        EmpDTO empResponse = modelMapper.map(savedEmp, EmpDTO.class);
+        EmpDTO empResponse = modelMapper.map(savedEmployee, EmpDTO.class);
         // set field by checking if(Ternary Operator) dea are filled if not will
         // assigned manager as null(i.e for boss/CEO is managerId = null bcz dey dont hv
         // a manager)
         // savedEmp.getManager() → returns an Manager object (the boss/manager).
         // .getId() → returns the Employee ID field of that manager(a Long).
-        empResponse.setManagerId(savedEmp.getManager() != null ? savedEmp.getManager().getId() : null);
+        empResponse.setManagerId(savedEmployee.getManager() != null ? savedEmployee.getManager().getId() : null);
         // empResponse.setDepartmentId(savedEmp.getDepartment() != null ?
         // savedEmp.getDepartment() : null);
-        empResponse.setSubordinateIds(savedEmp.getSubordinates() != null
-                ? savedEmp.getSubordinates().stream()
+        empResponse.setSubordinateIds(savedEmployee.getSubordinates() != null
+                ? savedEmployee.getSubordinates().stream()
                         .map(sub -> modelMapper.map(sub, EmpDTO.class).getId())
                         .collect(Collectors.toList())
                 : null);
 
+        empResponse.setDepartmentId(savedEmployee.getDepartment() != null ? savedEmployee.getDepartment().getId() : null);
         return empResponse;
     }
 
@@ -111,25 +112,17 @@ public class EmpService {
         // (this prevents someone from changing the department ID in the request)
         empDTO.setId(existingEmp.getId());
         // Map only non-null fields from DTO to entity to avoid overwriting with null
-
-        // modelMapper.map(empDTO, emp) — this takes every field in empDTO and assigns
-        // it to the emp object.
-        // If empDTO has non-null values → it replaces the old values in emp.
-        // If empDTO has null values → it overwrites the existing values in emp with
-        // null. BUT WITH THIS
-        // you can keep the old DB values when a field is missing in the DTO, you
-        // need to configure ModelMapper to skip nulls during mapping: with this line of
-        // code => modelMapper.getConfiguration().setSkipNullEnabled(true); in the
-        // AppConfig class
         // setSkipNullEnabled(true) → Tells ModelMapper not to overwrite existing values
         // with null.
-        modelMapper.map(empDTO, existingEmp);
+        modelMapper.map(empDTO, existingEmp); // Map only non-null fields from DTO to entity
 
         // Update manager if provided
         if (empDTO.getManagerId() != null) {
             Employee manager = empRepository.findById(empDTO.getManagerId())
                     .orElseThrow(() -> new ApiRequestException("manager not found with id" + empDTO.getManagerId()));
             existingEmp.setManager(manager);
+        }else{
+            existingEmp.setManager(null); // allow un-assigning a manager
         }
         // If departmentId is provided, update department
         if (empDTO.getDepartmentId() != null) {
@@ -137,6 +130,7 @@ public class EmpService {
                     .orElseThrow(() -> new ApiRequestException("Invalid department id" + empDTO.getDepartmentId()));
             existingEmp.setDepartment(dept);
         }
+        // Save updates
         Employee updatedEmp = empRepository.save(existingEmp);
         // map back to DTO
         EmpDTO empDtoResponse = modelMapper.map(updatedEmp, EmpDTO.class);
@@ -149,6 +143,9 @@ public class EmpService {
                         .map(sub -> modelMapper.map(sub, EmpDTO.class).getId())
                         .collect(Collectors.toList())
                 : null);
+        // Set department ID manually
+        empDtoResponse.setDepartmentId(updatedEmp.getDepartment() != null ? updatedEmp.getDepartment().getId() : null);
+        // return DTO response
         return empDtoResponse;
     }
 
@@ -156,16 +153,31 @@ public class EmpService {
 // MAKE SURE B4 POSTING EMPLOEE THEIR MUST B EXISTING DEPARTMENT
 // POST
 // {
-//   "firstName": "Rahma",
-//   "lastName": "Suleiman",
-//   "email": "rahma.suleiman@example.com",
-//   "phone": "+255712345678",
-//   "address": "Mombasa",
-//   "gender": "Female",
-//   "dob": "1998-04-15",
-//   "hireDate": "2023-06-01",
-//   "position": "Software Engineer",
-//   "salary": 1200000,
-//   "status": "ACTIVE",
-//   "departmentId": 2
+// "firstName": "Rahma",
+// "lastName": "Suleiman",
+// "email": "rahma.suleiman@example.com",
+// "phone": "+255712345678",
+// "address": "Mombasa",
+// "gender": "Female",
+// "dob": "1998-04-15",
+// "hireDate": "2023-06-01",
+// "position": "Software Engineer",
+// "salary": 1200000,
+// "status": "ACTIVE",
+// "departmentId": 2
+// }
+// {
+// "firstName": "Amina",
+// "lastName": "Hassan",
+// "email": "amina.hassan@example.com",
+// "phone": "+255712345678",
+// "address": "Dar es Salaam",
+// "gender": "Female",
+// "dob": "1995-06-12",
+// "hireDate": "2023-03-15",
+// "position": "Software Engineer",
+// "salary": 1500000,
+// "status": "ACTIVE",
+// "managerId": 1,
+// "departmentId": 3
 // }
