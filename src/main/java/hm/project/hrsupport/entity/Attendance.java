@@ -3,12 +3,8 @@ package hm.project.hrsupport.entity;
 import java.time.LocalDate;
 import java.time.LocalTime;
 
-// import com.fasterxml.jackson.annotation.JsonFormat;
-
 import hm.project.hrsupport.enums.AttendanceStatusEnum;
 import jakarta.persistence.*;
-// import lombok.Data;
-// import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -17,7 +13,6 @@ import lombok.Setter;
 @Setter
 @Table(name = "attendance")
 @Entity
-// @EqualsAndHashCode(callSuper = false)
 public class Attendance extends AuditModel<String> {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

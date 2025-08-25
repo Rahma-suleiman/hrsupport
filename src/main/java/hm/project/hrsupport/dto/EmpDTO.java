@@ -28,10 +28,13 @@ public class EmpDTO {
     // FK
     private Long managerId; // Reference manager by ID only
 
-    @JsonProperty(access = JsonProperty.Access.READ_ONLY) // 👈 Only visible in response
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY) //  Only visible in response
     private List<Long> subordinateIds; // Optional (only if you want manager -> list of employees)
-
+    
     private Long departmentId;
+    
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY) 
+    private List<Long> reviewId;
 
 
 }

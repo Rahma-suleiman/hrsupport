@@ -26,17 +26,50 @@ public class EmpService {
         this.deptRepository = deptRepository;
     }
 
+    // public List<EmpDTO> getAllEmployee() {
+    // List<Employee> employees = empRepository.findAll();
+    // return employees.stream()
+    // .map(emp -> modelMapper.map(emp, EmpDTO.class))
+    // .collect(Collectors.toList());
+    // }
+
     public List<EmpDTO> getAllEmployee() {
         List<Employee> employees = empRepository.findAll();
         return employees.stream()
-                .map(emp -> modelMapper.map(emp, EmpDTO.class))
-                .collect(Collectors.toList());
+                .map(emp -> {
+                    EmpDTO empDto = modelMapper.map(emp, EmpDTO.class);
+
+                    empDto.setManagerId(emp.getManager() != null ? emp.getManager().getId() : null);
+                    // set subordinates
+                    empDto.setSubordinateIds(emp.getSubordinates() != null
+                            ? emp.getSubordinates().stream()
+                                    .map(sub -> sub.getId())  // just ids instead of full mapping
+                                    .collect(Collectors.toList())
+                            : null);
+                    empDto.setDepartmentId(emp.getDepartment().getId());
+                    return empDto;
+                }).collect(Collectors.toList());
     }
 
+    // public EmpDTO getEmployeeById(Long id) {
+    // Employee empId = empRepository.findById(id)
+    // .orElseThrow(() -> new IllegalStateException("emploee not found with id" +
+    // id));
+    // return modelMapper.map(empId, EmpDTO.class);
+    // }
     public EmpDTO getEmployeeById(Long id) {
-        Employee empId = empRepository.findById(id)
+        Employee emp = empRepository.findById(id)
                 .orElseThrow(() -> new IllegalStateException("emploee not found with id" + id));
-        return modelMapper.map(empId, EmpDTO.class);
+        EmpDTO empDtoResponse = modelMapper.map(emp, EmpDTO.class);
+
+        empDtoResponse.setManagerId(emp.getManager() != null ? emp.getManager().getId() : null);
+        // set subordinates
+        empDtoResponse.setSubordinateIds(emp.getSubordinates() != null
+                ? emp.getSubordinates().stream()
+                        .map(sub -> sub.getId())
+                        .collect(Collectors.toList())
+                : null);
+        return empDtoResponse;
     }
 
     // public EmpDTO createEmployee(EmpDTO empDTO) {
@@ -61,7 +94,7 @@ public class EmpService {
         Employee manager = null;
         // set Manager(optional)
         if (empDTO.getManagerId() != null) {
-             manager = empRepository.findById(empDTO.getManagerId())
+            manager = empRepository.findById(empDTO.getManagerId())
                     .orElseThrow(() -> new ApiRequestException("Manager not found with id" + empDTO.getManagerId()));
             employee.setManager(manager);
 
@@ -78,7 +111,7 @@ public class EmpService {
                 .orElseThrow(() -> new ApiRequestException("Department not found"));
         employee.setDepartment(department);
         // Save and return
-     Employee savedEmployee = empRepository.save(employee);
+        Employee savedEmployee = empRepository.save(employee);
         // Map Back to DTO and assign it 2 a variable(2 send emploee saved response to
         // user) and set extra field manually
         EmpDTO empResponse = modelMapper.map(savedEmployee, EmpDTO.class);
@@ -96,7 +129,8 @@ public class EmpService {
                         .collect(Collectors.toList())
                 : null);
 
-        empResponse.setDepartmentId(savedEmployee.getDepartment() != null ? savedEmployee.getDepartment().getId() : null);
+        empResponse
+                .setDepartmentId(savedEmployee.getDepartment() != null ? savedEmployee.getDepartment().getId() : null);
         return empResponse;
     }
 
@@ -121,7 +155,7 @@ public class EmpService {
             Employee manager = empRepository.findById(empDTO.getManagerId())
                     .orElseThrow(() -> new ApiRequestException("manager not found with id" + empDTO.getManagerId()));
             existingEmp.setManager(manager);
-        }else{
+        } else {
             existingEmp.setManager(null); // allow un-assigning a manager
         }
         // If departmentId is provided, update department
@@ -140,7 +174,8 @@ public class EmpService {
         // Set subordinate IDs manually for response
         empDtoResponse.setSubordinateIds(updatedEmp.getSubordinates() != null
                 ? updatedEmp.getSubordinates().stream()
-                        .map(sub -> modelMapper.map(sub, EmpDTO.class).getId())
+                        // .map(sub -> modelMapper.map(sub, EmpDTO.class).getId()) OR
+                        .map(sub -> sub.getId()) // keep just IDs
                         .collect(Collectors.toList())
                 : null);
         // Set department ID manually

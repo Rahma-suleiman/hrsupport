@@ -36,9 +36,6 @@ public class EmpController {
     }
     @GetMapping("/{id}")
     public ResponseEntity<EmpDTO> getEmployeeById(@PathVariable Long id) {
-        // EmpDTO empId= empService.getEmployeeById(id);
-        // return ResponseEntity.ok(empId);
-        // OR
         return ResponseEntity.ok(empService.getEmployeeById(id));
     }
     @PostMapping
@@ -56,6 +53,7 @@ public class EmpController {
         empService.deleteEmployeeById(id);
         return ResponseEntity.noContent().build();
     }
+      // Employee views their own reviews
     
     
 }

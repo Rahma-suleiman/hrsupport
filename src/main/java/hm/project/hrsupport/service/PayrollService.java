@@ -31,13 +31,10 @@ public class PayrollService {
 
     public PayrollDTO addPayroll(PayrollDTO payrollDTO) {
 
+        Payroll payroll = modelMapper.map(payrollDTO, Payroll.class);
         // Fetch the employee first
         Employee employee = empRepository.findById(payrollDTO.getEmployeeId())
-                .orElseThrow(() -> new ApiRequestException(
-                        "Cannot get payroll for employee id " + payrollDTO.getEmployeeId()));
-
-        // Map DTO to entity
-        Payroll payroll = modelMapper.map(payrollDTO, Payroll.class);
+                .orElseThrow(() -> new ApiRequestException("Cannot get payroll for employee id " + payrollDTO.getEmployeeId()));
 
         // Set the employee
         payroll.setEmployee(employee);
@@ -53,14 +50,52 @@ public class PayrollService {
 
         Payroll savedPayroll = payrollRepository.save(payroll);
 
-        PayrollDTO savedPayrollDTO = modelMapper.map(savedPayroll, PayrollDTO.class);
+        PayrollDTO payrollDtoResponse = modelMapper.map(savedPayroll, PayrollDTO.class);
 
         // Set salary in the DTO so it is included in the response.
         // This field is read-only in the DTO and comes from the Employee entity, not
         // from user input.
-        savedPayrollDTO.setSalary(savedPayroll.getSalary());
+        payrollDtoResponse.setSalary(savedPayroll.getSalary());
 
-        return savedPayrollDTO;
+        return payrollDtoResponse;
     }
+
+    public void deletePayroll(Long id) {
+        payrollRepository.deleteById(id);
+    }
+
+    // public PayrollDTO addPayroll(Long id, PayrollDTO payrollDTO) {
+
+    // // Fetch the employee first
+    // Employee employee = empRepository.findById(id)
+    // .orElseThrow(() -> new ApiRequestException("Cannot get payroll for employee
+    // id " + id.getEmployeeId()));
+
+    // // Map DTO to entity
+    // Payroll payroll = modelMapper.map(payrollDTO, Payroll.class);
+
+    // // Set the employee
+    // payroll.setEmployee(employee);
+    // // Net Salary=Salary+Bonus−Deductions
+    // // Use employee's salary to calculate netSalary
+    // int netSalary = employee.getSalary()
+    // + (payrollDTO.getBonus() != null ? payrollDTO.getBonus() : 0)
+    // - (payrollDTO.getDeduction() != null ? payrollDTO.getDeduction() : 0);
+    // // set the calculated net salar
+    // payroll.setNetSalary(netSalary);
+
+    // payroll.setSalary(employee.getSalary());
+
+    // Payroll savedPayroll = payrollRepository.save(payroll);
+
+    // PayrollDTO savedPayrollDTO = modelMapper.map(savedPayroll, PayrollDTO.class);
+
+    // // Set salary in the DTO so it is included in the response.
+    // // This field is read-only in the DTO and comes from the Employee entity, not
+    // // from user input.
+    // savedPayrollDTO.setSalary(savedPayroll.getSalary());
+
+    // return savedPayrollDTO;
+    // }
 
 }
